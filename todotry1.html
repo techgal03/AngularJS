@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+	<title>My To Do list</title>
+</head>
+<body ng-app = "">
+	<div ng-controller = "toDoController">
+		<h3> To Do List </h3>
+
+		<div style = "background-color:lightblue; width:50%; border: 1px solid black">
+			<ul style = "list-style-type:none">
+				<li ng-repeat = "i in list"><input type = "checkbox" ng-model = "i.done">{{i.item}}</input></li>
+			</ul>
+
+		</div>
+		<br>
+		<input type = "text" size = 40 ng-model = "toDoItem" placeholder = "Add New Item" ng-keydown = "addOnEnter(e)"></input> 
+		<button ng-click = "Add()"> Add to List </button> <br><br>
+
+		<button ng-click = "Clear()"> Clear Completed</button>
+
+	</div>
+
+	<script>
+		function toDoController($scope){
+			$scope.list = [{'item': 'Learn Angular', 'done':false},
+							{'item':'Make ToDo List', 'done':false}];
+
+			$scope.Add = function(){
+
+				obj = {'item': $scope.toDoItem, 'done':false};
+				$scope.list.push(obj);
+
+				$scope.toDoItem = "";
+			}
+
+			$scope.addOnEnter = function(e){
+				if (event.keyCode == 13){
+
+				obj = {'item': $scope.toDoItem, 'done':false};
+				$scope.list.push(obj);
+
+				$scope.toDoItem = "";
+				}
+			}
+
+			
+			$scope.Clear = function(){
+				oldList = $scope.list;
+				$scope.list=[];
+				
+				oldList.forEach(function(x){
+					if(!x.done)
+					{
+						$scope.list.push(x);
+					}
+				});
+			}
+
+		}
+
+
+	</script>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js"></script>
+</body>
+</html>
