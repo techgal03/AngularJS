@@ -1,0 +1,218 @@
+<html>
+<head>
+	<title>Json Data Sorting</title>
+	<link rel="stylesheet" type="text/css" href="table.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="highcharts.js"></script>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<script>
+	 $(document).ready(function(){
+	 	$("#jsonData").click(ajaxCall);
+	 });
+
+	function ajaxCall(){
+	 	$.ajax({
+			dataType: "json",
+			url: "https://restcountries.eu/rest/v1/all",
+			data: "",
+			success: successCall,
+			error: errorCall
+		});
+
+	}
+
+	function successCall(result){
+
+				var tblHead = "<tr><th>No</th><th>CCode</th><th>CountryName</th><th>Capital</th><th id = 'sortPop'>Population(in millions)</th></tr>";
+
+				$("#myTable").empty().append(tblHead);
+
+				result.sort(function(a,b){
+					return (b['population'] - a['population']);
+				});
+
+				var newRes = result.slice(0,20);
+
+				addChart(newRes);
+
+				pieChart(newRes);
+
+				$.each(newRes, processEachItem);
+
+		}
+
+	/*$("#sortPop").click(sortRes);
+
+		function sortRes(res1){
+		   ("hi");
+		 }
+
+			var flag = true;
+			console.log(flag);
+
+				if (flag){
+					result.sort(function(a,b){
+						return (a['population'] - b['population']);
+						});
+				$("#myTable").empty().append(tblHead);
+				$.each(result, processEachItem);
+				flag = false;
+				console.log(flag);
+				}
+
+				else{
+					result.sort(function(a,b){
+						return (b['population'] - a['population']);
+						});
+					$("#myTable").empty().append(tblHead);
+					$.each(result, processEachItem);
+					flag = true;
+					console.log(flag);
+					}
+
+		});
+
+	}*/
+	
+	function addChart(res){
+
+		var myArray = [];
+		var mySeries = [];
+	
+		for (i = 0; i<res.length; i++){
+			myArray[i] = res[i].name;
+			mySeries[i] = res[i].population;
+			}
+
+   		$('#chartContainer').highcharts({
+	        chart: {
+	            type: 'column'
+	        },
+	        title: {
+	            text: 'Population around the world'
+	        },
+	        subtitle: {
+	            text: 'Source: Population Notes'
+	        },
+	        xAxis: {
+	            categories: myArray,
+	            crosshair: true
+	        },
+	        yAxis: {
+	            min: 0,
+	            title: {
+	                text: 'Population in millions'
+	            }
+	        },
+	        tooltip: {
+	            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+	            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+	                '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+	            footerFormat: '</table>',
+	            shared: true,
+	            useHTML: true
+	        },
+	        plotOptions: {
+	            column: {
+	                pointPadding: 0.2,
+	                borderWidth: 0
+	            }
+	        },
+	        series: [{
+	            name: 'population',
+	            data: mySeries
+
+	        }]
+    	});
+	} 
+
+	function pieChart(res){
+
+		var myArray = [];
+		var mySeries = [];
+	
+		for (i = 0; i<res.length; i++){
+			myArray[i] = res[i].name;
+			mySeries[i] = res[i].population;
+			}
+
+		$('#pieContainer').highcharts({
+        chart: {
+            plotBackgroundColor: null,
+            plotBorderWidth: null,
+            plotShadow: false,
+            type: 'pie'
+        },
+        title: {
+            text: 'Population around the world'
+        },
+        tooltip: {
+            pointFormat: '{point.name}: <b>{point.percentage:.1f}%</b>'
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    format: '<b>{series.name}</b>: {point.percentage:.1f} %',
+                    style: {
+                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                    }
+                }
+            }
+        },
+
+        series: [{
+            name: 'population',
+            colorByPoint: true,
+            data: mySeries
+        }]
+    });
+}
+
+	function processEachItem(i, obj){
+
+		//if (i < 20){
+
+			var pop = obj.population;
+
+			pop = Math.abs(pop) / 1.0e+6 + " million";
+
+			var tblRow = "<tr><td>" + (i+1) + "</td><td>" + obj.alpha2Code + "</td><td>" + obj.name + "</td><td>" + obj.capital + "</td><td>" + pop + "</td></tr>";
+			$("#myTable").append(tblRow);
+		//}
+		//else {
+		//	return;
+		//}
+
+	}
+
+	function errorCall(res){
+		console.log(res);
+		alert("Error in service call");
+	}
+
+	 </script>
+
+
+</head>
+<body>
+	<h3> Click here to go to <a href = "../Assignments.html" target = "_self"> Assignments </a> page </h3>
+
+	<button id = "jsonData"> Get sorted data </button>
+
+	<br><br>
+	<div class = "container">
+		<div class ="row">
+			<div class="col-md-6"><table id = "myTable" class = "imagetable"></table></div>
+			<div class="col-md-6">
+				<div style = "border-style: ridge; margin: 15px; padding: 30px" id = "chartContainer"></div>
+				<div style = "border-style: ridge; margin: 15px; padding: 30px" id = "pieContainer"></div>
+			<div>
+		</div>
+	</div>
+
+</body>
+</html>

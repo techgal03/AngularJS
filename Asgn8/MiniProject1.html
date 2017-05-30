@@ -1,0 +1,267 @@
+<html>
+<head>
+	<title>Json Data Sorting</title>
+	<link rel="stylesheet" type="text/css" href="table.css">
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="highcharts.js"></script>
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<script>
+	var flag = true;
+
+	 $(document).ready(function(){
+	 	$("#jsonData").click(ajaxCall);
+	 });
+
+	function ajaxCall(){
+	 	$.ajax({
+			dataType: "json",
+			url: "https://restcountries.eu/rest/v1/all",
+			data: "",
+			success: successCall,
+			error: errorCall
+		});
+
+	}
+
+	function successCall(result){
+
+				var tblHead = "<tr><th>No</th><th>CCode</th><th>CountryName</th><th>Capital</th><th id = 'sortPop'>Population(in millions)</th></tr>";
+
+				$("#myTable").empty().append(tblHead);
+
+				result.sort(function(a,b){
+					return (b['population'] - a['population']);
+				});
+
+				var newRes = result.slice(0,20);
+
+				addChart(newRes);
+
+				$.each(newRes, processEachItem);
+
+		}
+
+	function addChart(res){
+
+		var myArray = [];
+		var mySeries = [];
+		var myCC = [];
+
+	
+		for (i = 0; i<res.length; i++){
+			myArray[i] = res[i].name;
+			mySeries[i] = res[i].population;
+			myCC[i] = res[i].alpha2Code;
+			
+			}
+
+   		$('#chartContainer').highcharts({
+	        chart: {
+	            type: 'column'
+	        },
+	        title: {
+	            text: 'Population around the world'
+	        },
+	        xAxis: {
+	            categories: myArray,
+	            crosshair: true
+	        },
+	        
+	        tooltip: {
+	            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+	            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+	                '<td style="padding:0"><b>{point.y:.1f} mm</b></td></tr>',
+	            footerFormat: '</table>',
+	            shared: true,
+	            useHTML: true
+	        },
+	        plotOptions: {
+	        	series: {
+			  		cursor: 'pointer',
+		      		point: {
+			    		events: {click:function () {
+                           debugger;
+                            //alert('Category: ' + this.category + ', value: ' + this.y);
+                           clickajaxcall(this.category, res)
+                        }
+				 			
+				 		}
+			    	}
+			    }
+		     },  
+	       
+	        series: [{
+	            name: 'population',
+	            data: mySeries
+	        }]
+	             
+    	});
+	} 
+ 
+	function clickajaxcall(cat, thisobj){
+
+		var countryCode = "";
+		
+
+		for(var j=0; j< thisobj.length; j++){
+          if(thisobj[j].name == cat){
+              countryCode  = thisobj[j].alpha2Code;
+          }
+      }
+
+		//var countryCode = thisobj.point.category;
+
+		var gdpURL = "http://api.worldbank.org/countries/" + countryCode + "/indicators/NY.GDP.MKTP.CD?format=jsonP&prefix=?";
+
+		$.ajax({
+		     	dataType: "jsonp",
+		        jsonp: "prefix",
+		        jsonpCallback: "jquery_"+(new Date).getTime(),
+		        url: gdpURL,
+		        type: "GET",
+		        crossDomain: true,
+		        async: false,
+		        data: "",
+		        success: lineChartoraddseries,
+		        error:errorCall,
+		        beforeSend : function(){
+		          //  waitingDialog.show('Loading Data ...');
+		        },
+		        complete: function(res){
+		         //   waitingDialog.hide();
+		        }
+		    	});
+	}
+
+	function lineChartoraddseries(resobj){
+			if (flag == 'false')
+				{
+				addSeries(resobj);
+				}
+			else
+				{
+				lineChart(resobj);
+				} 
+	}
+
+	function addSeries(res){
+
+		var objArray = res[1];
+
+	 	var cName = objArray[1].country.value;
+
+		var myGDP = [];
+		var myArray = [];
+
+	
+		for (i = 0; i<objArray.length; i++){
+			myArray[i] = objArray[i].name;
+			myGDP[i] = Math.abs(Number(objArray[i].value)) / 1.0e+9;
+			}	
+
+		myGDP.reverse();
+
+		var chart = $('#lineContainer').highcharts();
+    	
+    	chart.addSeries({
+    		name: cName,
+        	data: myGDP
+    		});
+	}
+
+	function lineChart(res){
+
+		flag = 'false';	
+
+	 	var objArray = res[1];
+	 	var cName = objArray[1].country.value;
+
+	 	var myDate = [];
+		var myGDP = [];
+	
+		for (i = 0; i<objArray.length; i++){
+			myDate[i] = objArray[i].date;
+			myGDP[i] = Math.abs(Number(objArray[i].value)) / 1.0e+9;
+			}	
+
+		myDate.reverse();
+		myGDP.reverse();
+
+
+	 	 $('#lineContainer').highcharts({
+        title: {
+            text: 'GDP over the years',
+   
+        },
+        subtitle: {
+            text: 'Source: gdpURL',
+ 
+        },
+        xAxis: {
+            categories: myDate
+        },
+        yAxis: {
+            title: {
+                text: 'GDP'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }]
+        },
+        tooltip: {
+            valueSuffix: 'Million'
+        },
+        legend: {
+	        enabled: true,
+	        //floating: true,
+	        verticalAlign: 'bottom',
+	        align:'right',
+	        y:20
+        },
+        series: [{
+            name: cName,
+            data: myGDP
+        }]
+    });
+	 }
+
+	function processEachItem(i, obj){
+
+			var pop = obj.population;
+
+			pop = Math.abs(pop) / 1.0e+6 + " million";
+
+			var tblRow = "<tr><td>" + (i+1) + "</td><td>" + obj.alpha2Code + "</td><td>" + obj.name + "</td><td>" + obj.capital + "</td><td>" + pop + "</td></tr>";
+			$("#myTable").append(tblRow);
+
+	}
+
+	function errorCall(){
+		alert("Error in service call");
+	}
+
+	 </script>
+
+
+</head>
+<body>
+	<h3> Click here to go to <a href = "../Assignments.html" target = "_self"> Assignments </a> page </h3>
+
+	<button id = "jsonData"> Get sorted data </button>
+
+	<br><br>
+	<div class = "container">
+		<div class ="row">
+			<div class="col-md-6"><table id = "myTable" class = "imagetable"></table></div>
+			<div class="col-md-6">
+				<div style = "border-style: ridge; margin: 15px; padding: 30px" id = "chartContainer"></div>
+				<div style = "border-style: ridge; margin: 15px; padding: 30px" id = "lineContainer"></div>
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>
