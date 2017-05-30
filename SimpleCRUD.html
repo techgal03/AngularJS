@@ -1,0 +1,120 @@
+<!Doctype html>
+<html>
+<head>
+	<title>First assignment in Angular</title>
+	<h3> Click here to go to <a href = "Assignments.html" target = "_self"> Assignments </a> page </h3>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+</head>
+<body ng-app="" style = "margin:20px; background-color: #FFFFF0">
+<div class ="container">
+		<div class = "row" ng-controller = "viewController">
+
+				<div class= "col-md-6 form-group" >
+				<h2 style="display:inline width:40%">Add name and details</h2>
+					Name: <input type="text" class="form-control" ng-model="fName">
+					DOJ:<input id ="datepick" type = "text" class="form-control" ng-model="dob">
+					Age:<input type ="text" class="form-control" ng-model="age">
+					Address:<input type = "text" class="form-control" ng-model ="address">
+
+					<br><br>
+
+					<button class="btn btn-primary" ng-click = "add()"> Add to List </button>
+					<button class="btn btn-warning" ng-click = "del()"> Delete Last </button>
+					<button class="btn btn-danger" ng-click = "empty()"> Empty List </button>
+					<button class="btn btn-success" ng-click = "save()"> Save </button>
+				</div>
+
+				<h2 style="float:right width:40%">View List</h2>
+				<div class ="col-md-6" style ="border: 1px solid black; padding:30px">
+						<div ng-repeat= "obj in list" style ="border-bottom-style:dotted; font-size:15px; padding: 10px">
+							{{"  Name:  " + obj.name }} <br>
+							{{"  DOJ:  " + obj.dob }} <br>
+							{{"  Age:  " + obj.age }} <br>
+							{{" Address:  " + obj.address }}
+							<br>
+							<button class="btn btn-warning" ng-click = "delthis(obj.name)"> Delete </button>
+							<button class="btn btn-warning" ng-click = "editthis(obj.name)"> Edit </button>
+						</div>
+				</div>
+
+		</div>
+</div>
+
+<script>
+function viewController($scope){
+	$scope.list = [
+					{"name":"John", "dob":"10/12/1990","age" : "42", "address" : "456, apple street"},
+					{"name":"Rose", "dob":"10/12/1990","age" : "15", "address" : "789, orange street"},
+					{"name":"Jack", "dob":"10/12/1990","age" : "35", "address" : "321, plum street"}
+				];
+
+	$scope.add = function (){
+    	var obj = {"name" : $scope.fName, "dob" : $scope.dob, "age" : $scope.age, "address" : $scope.address};
+    	$scope.list.push(obj);
+
+    	alert("Adding  " + $scope.fName);
+
+    	$scope.fName ="";
+    	$scope.dob ="";
+    	$scope.age="";
+    	$scope.address="";
+
+
+    }
+
+    $scope.del = function(){
+    	//$scope.list.splice($scope.list.length-1,1);
+    	$scope.list.pop();
+    }
+
+    $scope.empty = function(){
+    	$scope.list = [];
+    }
+
+    $scope.delthis = function(n){
+
+    	for(var i=0;i < $scope.list.length; i++){
+    		if ($scope.list[i].name == n){
+    			$scope.list.splice(i,1);
+
+    		}
+    	}
+    }
+    $scope.editthis = function(n){
+
+    	for(var i=0;i < $scope.list.length; i++){
+    		if ($scope.list[i].name == n){
+
+    			$scope.fName =$scope.list[i].name;
+    			$scope.dob =$scope.list[i].dob;
+    			$scope.age=$scope.list[i].age;
+    			$scope.address=$scope.list[i].address;
+
+    			ind=i;
+    		}
+    	}
+    }
+
+    $scope.save = function(){
+
+		$scope.list[ind].name = $scope.fName;
+		$scope.list[ind].dob = $scope.dob;
+		$scope.list[ind].age = $scope.age;
+		$scope.list[ind].address = $scope.address;
+
+    	alert("Updated  " + $scope.fName);
+
+    	$scope.fName ="";
+    	$scope.dob ="";
+    	$scope.age="";
+    	$scope.address="";
+    }
+}
+
+</script>
+
+<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.15/angular.min.js"></script>
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</body>
+</html>
